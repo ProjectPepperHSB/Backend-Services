@@ -1,0 +1,5 @@
+Pillow
+requests
+regex
+beautifulsoup4
+pdf2image

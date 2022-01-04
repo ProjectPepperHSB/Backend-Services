@@ -7,23 +7,30 @@ This is where various scripts and smaller applications are managed, which are us
 - Python (v3.7.1+)
 
 ```bash
-$ python3 --version
+╰─ python3 --version
 Python 3.7.1
 ```
 
-- pip or other python package manager
+- pip (or other python package manager)
 
 ## Installation
 
 ```bash
-$ git clone https://github.com/ProjectPepperHSB/Backend-Services
+╰─ git clone https://github.com/ProjectPepperHSB/Backend-Services
+```
+
+Every package has its own install script to install the required packages.
+
+```bash
+╰─ python3 -m pip intall -r requirements.txt
 ```
 
 ## Includes
 
-- Scripts to fetch timetables from the University website
-- Scripts to fetch menus from University websites
-
-## Notes
+- Script to create dummy data, which simulates collected data from interactions with the robot
+- Script to fetch timetables from the University of Bremerhaven
+- Script to fetch menus from University websites
 
 ## Todo
+
+- Comment and format mensa stuff

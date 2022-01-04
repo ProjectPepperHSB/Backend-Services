@@ -1,0 +1,8 @@
+*.swp
+*.csv
+*tmp*
+*temp*
+*.mp4
+
+.DS_Store
+__pycache__
