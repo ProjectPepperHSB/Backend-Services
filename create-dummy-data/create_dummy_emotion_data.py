@@ -3,7 +3,6 @@ __version__ = "1.0.1"
 __author__      = "Benjamin Thomas Schwertfeger"
 __copyright__   = "Benjamin Thomas Schwertfeger"
 __email__ = "development@b-schwertfeger.de"
-__credits__ = ["Kristian Kellermann", "Jacob Menge"]
 __status__ = "Production"
 
 # ----- D E S C R I P T I O N ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -33,31 +32,25 @@ __status__ = "Production"
     Values in the region DEFINITIONS can be customized.
 
     BASE URL: https://informatik.hs-bremerhaven.de/docker-hbv-kms-http/collector
-    Parameters sent to API:
-        - identifier | hash or name
-        - distance | distance between speaker and robot
-        - age | age of speaker
-        - gender | gender of speaker
-        - basic_emotion | ...
-        - pleasure_state | ...
-        - excitement_state | ...
-        - smile_state | ...
-        - dialog_time | time of conversation
 
     ----- A U T H O R S H I P - A N D - C O N T R I B U T I O N -----
-    @Date: 2022, January 4.
-    @Author: Benjamin Thomas Schwertfeger
-    @Email: development@b-schwertfeger.de
-    @Contributors: Kristian Kellermann, Jacob Menge
-    @Links: https://github.com/ProjectPepperHSB/Backend-Services
+    @date: 2022, January 4.
+    @author: Benjamin Thomas Schwertfeger
+    @email: development@b-schwertfeger.de
+    @github: https://github.com/ProjectPepperHSB/Backend-Services
 '''
 
 # ----- I M P O R T S ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 import sys, traceback
+import logging
+
 import requests
 import numpy as np
-import logging
+import random
+import string
+import json
+
 from tqdm import tqdm
 import argparse
 import uuid
@@ -67,7 +60,7 @@ import uuid
 parser = argparse.ArgumentParser(description="Create dummy data to send to API")
 parser.add_argument(
     "-n", type=int, dest="nr_of_entries_to_generate", default=1000,
-    help="number of datasets to generate and send | default: 1000"
+    help="number of conversations with datasets to generate and send to backend | default: 1000"
 )
 parser.add_argument(
     "-p", "--prod", dest="production", default=False, action="store_true",
@@ -88,46 +81,90 @@ logging.getLogger().addHandler(screen_handler)
 
 # ----- D E F I N I T I O N S ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # ----- dont change this -----
-SUBJECT = "save_pepper_data"
-BASE_URL = "https://informatik.hs-bremerhaven.de/docker-hbv-kms-http/collector" if vars(args)["production"] else "http://127.0.0.1:3000/docker-hbv-kms-http/collector"
+
+BASE_URL = "https://informatik.hs-bremerhaven.de/docker-hbv-kms-http/collector" if vars(args)["production"] else "http://localhost:3000/docker-hbv-kms-http/collector"
 NR_OF_ENTRIES_TO_GENERATE = vars(args)["nr_of_entries_to_generate"]
 
 # ----- following can be customized -----
 basic_emotions = ["bad", "good", "excited", "bored"]
 pleasure_states = ["bad", "medium", "good", "perfect"]
 excitement_states = ["excited", "not excited"]
-smile_state = ["false", "medium", "true"]
+smile_states = ["false", "medium", "true"]
+
+use_cases = ["RouteFinder", "TimeTable", "Mensa", "SmallTalk", "About HS", "About HBV"]
+
+human_body_types = ["fat", "sporty", "normal", "skinny"]
+colors = ["blonde", "black", "no hair", "white", "red", "orange", "green", "blue", "brown"]
 
 # ----- F U N C T I O N S ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-def get_random_conversation_data():
-    '''Return randomized conversation data as type dict.'''
+def get_random_data():
+    '''Return randomized emotion, conversation, use-case and not understand phrase data as type dict.'''
+    identifier = uuid.uuid4().hex
+    
     dialog_times = np.random.normal(3, 3, 1000)
-    return {
-        "identifier": uuid.uuid4().hex,
+    dialog_time = np.round(np.random.choice(dialog_times[dialog_times > 1]), 2)
+    
+    emotion_data = [{ 
+        "identifier": identifier,
         "distance": np.round(np.random.random() * 2, 4),
         "age": np.random.choice(range(3, 80, 1)),
         "gender": np.random.choice(["male", "female"]) if np.random.random() > 0.0001 else "other",
         "basic_emotion": np.random.choice(basic_emotions),
         "pleasure_state": np.random.choice(pleasure_states),
         "excitement_state": np.random.choice(excitement_states),
-        "smile_state": np.random.choice(smile_state),
-        "dialog_time": np.round(np.random.choice(dialog_times[dialog_times > 1]), 2)
+        "smile_state": np.random.choice(smile_states),
+        "dialog_time": dialog_time
+    }]
+    
+    nr_of_use_cases = np.random.choice(np.arange(0, len(use_cases)))
+    use_case_data = [{
+            "identifier": identifier,
+            "use_case": np.random.choice(use_cases)
+        } for _ in range(nr_of_use_cases)
+    ]
+
+    nr_of_not_understand_phrases = np.random.choice(np.arange(5)) if dialog_time < 6 else np.random.choice(np.arange(10))
+    did_not_understand_data = [{
+            "identifier": identifier,
+            "phrase": ''.join(random.choices(f"{string.ascii_lowercase}{string.digits}", k = np.random.choice(range(5, 20, 1))))    
+        } for _ in range(nr_of_not_understand_phrases)
+    ]
+
+    conversation_data = [{
+        "identifier": identifier,
+        "data": { 
+            "attributes": {
+                "hair": np.random.choice(colors),
+                "eyes": np.random.choice(colors),
+                "body": np.random.choice(human_body_types)
+            }
+        }
+    }]
+
+    return {
+        "emotion_data": emotion_data,
+        "use_case_data": use_case_data,
+        "did_not_understand_data": did_not_understand_data,
+        "conversation_data": conversation_data
     }
 
-def do_request(query_string: str):
+def do_request(method: str,  subject: str, query_string="", data={}):
     '''Send get request to API.
 
         ----- Keyword arguments -----
         query_string: str | Query string to send
 
         ----- Example -----
-        do_request(query_string="&gender=male")
-
+        do_request(method="GET", subject="emotion_data", query_string="&gender=male")
     '''
 
     try:
-        response = requests.get(f"{BASE_URL}?subject={SUBJECT}&{query_string}")
+        if method == "GET":
+            response = requests.get(f"{BASE_URL}?subject={subject}&{query_string}")
+        elif method == "POST":
+            response = requests.post(f"{BASE_URL}", data = data)
+
         if response.status_code != 200:
             raise ConnectionError
     except Exception as e:
@@ -135,18 +172,34 @@ def do_request(query_string: str):
         log.warning("Exiting now!")
         exit()
 
-def submit_data(data: dict):
+def submit_datasets(datasets: dict):
     '''Create query string and trigger request function.
 
         ----- Keyword arguments -----
         data: dict | Dictionary containing key value pairs to be sent
 
-        ----- Example -----
-        submit_data(data={ "gender": "male", "age": 18 })
-
     '''
-
-    do_request("&".join([f"{key}={data[key]}" for key in data]))
+    for subject in datasets:
+        if subject == "conversation_data":
+            [
+                do_request(
+                    method = "POST",
+                    subject = subject,
+                    data = {
+                        "subject": subject,
+                        "identifier": dataset["identifier"],
+                        "data": json.dumps(dataset["data"])
+                    }
+                ) for dataset in datasets[subject]
+            ]
+        else:
+            [
+                do_request(
+                    method = "GET",
+                    subject = subject,
+                    query_string = "&".join([f"{key}={dataset[key]}" for key in dataset])
+                ) for dataset in datasets[subject]
+            ]
 
 # ----- M A I N ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
@@ -154,12 +207,14 @@ def main():
     '''Main function'''
 
     log.info(f"Sending {NR_OF_ENTRIES_TO_GENERATE} dummy datasets to {BASE_URL}")
-    [submit_data(get_random_conversation_data()) for _ in tqdm(range(NR_OF_ENTRIES_TO_GENERATE))]
+    [submit_datasets(get_random_data()) for _ in tqdm(range(NR_OF_ENTRIES_TO_GENERATE))]
     log.info("Done!")
 
 
 if __name__ == "__main__":
     '''Function to mark standalone script'''
     main()
+
+
 
 # ----- E O F ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
