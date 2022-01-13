@@ -7,9 +7,10 @@ def is_downloadable(url):
     content_type = header.get('content-type')
     if 'text' in content_type.lower():
         return False
-    if 'html' in content_type.lower():
+    elif 'html' in content_type.lower():
         return False
-    return True
+    else: 
+        return True
 
 # <--Todo | Input --> Room --> Video<name>
 
