@@ -5,4 +5,7 @@
 *.mp4
 
 .DS_Store
+
+Video_example/
+.idea/
 __pycache__

@@ -8,7 +8,7 @@ __status__ = "Production"
 # ----- D E S C R I P T I O N ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 '''
-    create_dummy_emotion_data.py
+    create_dummy_conversation_data.py
     ===================================
 
     This script is used to randomly generate data that is sent to a web application via API.
@@ -44,6 +44,10 @@ __status__ = "Production"
 
 import sys, traceback
 import logging
+import argparse
+
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 import requests
 import numpy as np
@@ -51,8 +55,6 @@ import random
 import string
 import json
 
-from tqdm import tqdm
-import argparse
 import uuid
 
 # ----- S E T U P ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -207,7 +209,7 @@ def main():
     '''Main function'''
 
     log.info(f"Sending {NR_OF_ENTRIES_TO_GENERATE} dummy datasets to {BASE_URL}")
-    [submit_datasets(get_random_data()) for _ in tqdm(range(NR_OF_ENTRIES_TO_GENERATE))]
+    Parallel(n_jobs=6)(delayed(submit_datasets)(get_random_data()) for _ in tqdm(range(NR_OF_ENTRIES_TO_GENERATE)))
     log.info("Done!")
 
 
