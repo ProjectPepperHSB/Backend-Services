@@ -3,9 +3,9 @@
 *tmp*
 *temp*
 *.mp4
-
+.env
 .DS_Store
 
 Video_example/
-.idea/
+.idea
 __pycache__
