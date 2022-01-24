@@ -27,6 +27,9 @@ Every package has its own install script to install the required packages.
 
 ## Includes
 
+- Analysis part
+  - Jupyter Notebook with plots etc...
+  - Script to generate weekly reports of peppers activity
 - Script to create dummy data, which simulates collected data from interactions with the robot
 - Script to fetch timetables from the University of Bremerhaven
 - Script to fetch menus from University websites

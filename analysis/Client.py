@@ -39,14 +39,23 @@ class Client(object):
 
     timeout = 10
 
-    def __init__(self, API_KEY: str, sandbox: bool=False):
+    def __init__(self, API_KEY: str, sandbox: bool=False, verbose: int=0):
         self.API_KEY = API_KEY
         if not sandbox:
             self.url = self.BASE_URL
         else:
             self.url = self.SANDBOX_URL
+
+        if verbose == 0:
+            print(self.test_connection())
         
     
+    def test_connection(self):
+        payload = {
+            "subject": "test"
+        }
+        return self._request("POST", params=payload, uri="/api/v1")
+
     def sql_query(self, query: str):
         return self._send_sql_query(query)
 
