@@ -1,10 +1,11 @@
 import requests
 
-__version__ = "v1.0.0"
-__author__ = "Benjamin Thomas Schwertfeger"
-__copyright__   = "Benjamin Thomas Schwertfeger"
-__email__ = "development@b-schwertfeger.de"
-__status__ = "Production"
+__version__ = 'v1.0.0'
+__author__ = 'Benjamin Thomas Schwertfeger'
+__copyright__   = 'Benjamin Thomas Schwertfeger'
+__email__ = 'development@b-schwertfeger.de'
+__status__ = 'Production'
+
 
 class Client(object):
     '''
@@ -20,8 +21,8 @@ class Client(object):
 
         ------ E X A M P L E ------
 
-        > client = Client(API_KEY="n6C?q*QuDA", sandbox=True)
-        > client.sql_query("select * from pepper_did_not_understand_table limi 1")
+        > client = Client(API_KEY='n6C?q*QuDA', sandbox=True)
+        > client.sql_query('select * from pepper_did_not_understand_table limi 1')
         [{
             'data_id': 1,
             'identifier': '7ce287b890cd497c9c2ae05c1dd2ae20',
@@ -31,11 +32,11 @@ class Client(object):
 
     '''
 
-    VERSION = "v0.0.1"
-    API_VERSION = "v1"
+    VERSION = 'v0.0.1'
+    API_VERSION = 'v1'
 
-    BASE_URL = "https://informatik.hs-bremerhaven.de/docker-hbv-kms-http"
-    SANDBOX_URL = "http://localhost:3000/docker-hbv-kms-http"
+    BASE_URL = 'https://informatik.hs-bremerhaven.de/docker-hbv-kms-http'
+    SANDBOX_URL = 'http://localhost:3000/docker-hbv-kms-http'
 
     timeout = 10
 
@@ -49,43 +50,42 @@ class Client(object):
         if verbose == 0:
             print(self.test_connection())
         
-    
-    def test_connection(self):
+    def test_connection(self) -> dict:
         payload = {
-            "subject": "test"
+            'subject': 'test'
         }
-        return self._request("POST", params=payload, uri="/api/v1")
+        return self._request('POST', params=payload, uri='/api/v1')
 
-    def sql_query(self, query: str):
+    def sql_query(self, query: str) -> dict:
         return self._send_sql_query(query)
 
-    def _send_sql_query(self, query: str):
+    def _send_sql_query(self, query: str) -> dict:
         payload = {
-            "subject": "sql_query",
-            "query_str": f"{query};"
+            'subject': 'sql_query',
+            'query_str': f'{query};'
         }
 
-        return self._request("POST", params=payload, uri="/api/v1")
+        return self._request('POST', params=payload, uri='/api/v1')
 
-    def _request(self, method: str, params: dict={}, uri: str='', headers: dict={}):
+    def _request(self, method: str, params: dict={}, uri: str='', headers: dict={}) -> dict:
         uri_path = uri
         data_json = ''
-        if method in ["GET", "DELETE"]:
+        if method in ['GET', 'DELETE']:
             if params:
                 strl = []
                 for key in sorted(params):
-                    strl.append("{}={}".format(key, params[key]))
+                    strl.append('{}={}'.format(key, params[key]))
                 data_json += '&'.join(strl)
-                uri += f"?{data_json}"
+                uri += f'?{data_json}'
         else:
             if params:
-                params["auth_key"] = self.API_KEY
+                params['auth_key'] = self.API_KEY
                 data_json = params 
        
-        headers["User-Agent"] = "hbv-kms-pepper-team"
-        url = f"{self.url}{uri}"
+        headers['User-Agent'] = 'hbv-kms-pepper-team'
+        url = f'{self.url}{uri}'
 
-        if method in ["GET", "DELETE"]:
+        if method in ['GET', 'DELETE']:
             response_data = requests.request(method, url, headers=headers, timeout=self.timeout)
         else:
             response_data = requests.request(method, url, headers=headers, data=data_json, timeout=self.timeout)
@@ -93,7 +93,7 @@ class Client(object):
         return self.check_response_data(response_data)
 
     @staticmethod
-    def check_response_data(response_data):
+    def check_response_data(response_data) -> dict:
         if response_data.status_code == 200:
             try:
                 data = response_data.json()
@@ -102,4 +102,4 @@ class Client(object):
             else:
                 return data
         else:
-            raise Exception("{}-{}".format(response_data.status_code, response_data.text))
+            raise Exception('{}-{}'.format(response_data.status_code, response_data.text))
