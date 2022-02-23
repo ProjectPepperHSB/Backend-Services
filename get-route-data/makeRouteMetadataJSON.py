@@ -14,7 +14,6 @@ startpoint = "L00P1133"
 # Project id | Bremerhaven project id: 100011
 project = "100011"
 
-
 # generate request for video metadata
 def get_request(mode: str, project: str, startpoint: str, endpoint: str):
     """
@@ -27,41 +26,45 @@ def get_request(mode: str, project: str, startpoint: str, endpoint: str):
     url = f'https://services.guide3d.com/route/cors/index.php?project={project}&start={startpoint}&end={endpoint}&mode={mode}&redirect=duration&format=none'
     return requests.get(url, allow_redirects=True)
 
+def round_up_numbers(number: int):
+    roundednumber = 
+    return roundenumber:
+
 
 if __name__ == '__main__':
 
-    count = 0
+    count =  0
 
     # iterate over used json data
     for d in data["data"]["list"]:
         count += 1
         endpoint = d["point"]
         video_name = f'{startpoint}-{endpoint}-'
-        video_path = f'video/{video_name}'
+        video_path = f'{video_name}'
 
         # define request for video metadata
         # send request for normal path
-        r_M0000 = get_request(mode="M0000", project=project, startpoint=startpoint, endpoint=endpoint)
+        r_M0 = get_request(mode="M0000", project=project, startpoint=startpoint, endpoint=endpoint)
 
         # send request for Accessible path
-        r_M0001 = get_request(mode="M0001", project=project, startpoint=startpoint, endpoint=endpoint)
+        r_M1 = get_request(mode="M0001", project=project, startpoint=startpoint, endpoint=endpoint)
 
         # print data
-        print(f'dis: {r_M0000.json()["distance"]}')
-        print(f'time: {r_M0000.json()["duration"]}')
-        print(f'dis: {r_M0001.json()["distance"]}')
-        print(f'time: {r_M0001.json()["duration"]}')
+        print(f'dis: {r_M0.json()["distance"]}')
+        print(f'time: {r_M0.json()["duration"]}')
+        print(f'dis: {r_M1.json()["distance"]}')
+        print(f'time: {r_M1.json()["duration"]}')
 
         # add new data to dictonary and define the json data structure
         new_data_struc.update(
-            {f'{d["name"]}': {'M0000': {'video_path': f'{video_path}M0000.mp4',
+            {f'{d["name"]}': [{'M0': {'video_path': f'{video_path}M0000.mp4',
                                         'location': f'{d["location"]}',
-                                        'distance': f'{r_M0000.json()["distance"]}',
-                                        'time': f'{r_M0000.json()["duration"]}'},
-                              'M0001': {'video_path': f'{video_path}M0001.mp4',
+                                        'distance': f'{r_M0.json()["distance"]}',
+                                        'time': f'{r_M0.json()["duration"]}'},
+                              'M1': {'video_path': f'{video_path}M0001.mp4',
                                         'location': f'{d["location"]}',
-                                        'distance': f'{r_M0001.json()["distance"]}',
-                                        'time': f'{r_M0001.json()["duration"]}'}}})
+                                        'distance': f'{r_M1.json()["distance"]}',
+                                        'time': f'{r_M1.json()["duration"]}'}}]})
         print(new_data_struc)
         print(count)
 
