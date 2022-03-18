@@ -33,6 +33,9 @@ Every package has its own install script to install the required packages.
 - Script to create dummy data, which simulates collected data from interactions with the robot
 - Script to fetch timetables from the University of Bremerhaven
 - Script to fetch menus from University websites
+- script to download MP4 videos for 3d navigation within the university
+- Script for creating and structuring the metadata for the spatial routes
+- route_data.json file with the information on the routes
 
 ## Todo
 
