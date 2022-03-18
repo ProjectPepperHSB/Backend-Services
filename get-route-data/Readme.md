@@ -34,7 +34,7 @@ Here is a link to the API from 3d-Berlin that we used to get all this meta infor
 https://www.guide3d.mobi/?project=100011
 
     
-##The following attributes are described in the data:
+## The following attributes are described in the data:
     
 *  **Type of route**
 For each route description there are two different ways to reach the destination. In each case, we create a barrier-free route and an ordinary route or a route that can be reached quickly.
