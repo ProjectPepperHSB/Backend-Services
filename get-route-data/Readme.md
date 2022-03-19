@@ -36,20 +36,20 @@ https://www.guide3d.mobi/?project=100011
     
 ## The following attributes are described in the data:
     
-    *  **Type of route**
-        For each route description there are two different ways to reach the destination. In each case, we create a barrier-free route and an ordinary route or a route that can be reached quickly.
+*  **Type of route**
+For each route description there are two different ways to reach the destination. In each case, we create a barrier-free route and an ordinary route or a route that can be reached quickly.
         
-    *  **Video path** 
-        This parameter represents the direct link to the corresponding data with the associated spatial information. In this way, we can determine the appropriate video with the correct route description as precisely as possible.
+*  **Video path** 
+This parameter represents the direct link to the corresponding data with the associated spatial information. In this way, we can determine the appropriate video with the correct route description as precisely as possible.
         
-	*  **Location**
-        The location is a short description in which house and which floor the room is located. Such a location description would be, for example, "House C ground floor". With this description Pepper can provide the user with additional information for verbal interaction.
+*  **Location**
+The location is a short description in which house and which floor the room is located. Such a location description would be, for example, "House C ground floor". With this description Pepper can provide the user with additional information for verbal interaction.
         
-    *  **Distance**
-        The distance is the distance from the starting point of the directions to the destination. We use metres as the unit and round this up to whole metres for better comprehensibility.
+*  **Distance**
+The distance is the distance from the starting point of the directions to the destination. We use metres as the unit and round this up to whole metres for better comprehensibility.
         
-    *  **Duration** 
-        The duration is given in minutes. It describes the time needed from the starting point to the destination, based on the average walking speed.
+*  **Duration** 
+The duration is given in minutes. It describes the time needed from the starting point to the destination, based on the average walking speed.
 
 It should be noted that the json file created is stored in the directory in which the script is executed. In addition, an internet connection is of course necessary to execute the script correctly.  
 
