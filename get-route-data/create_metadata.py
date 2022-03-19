@@ -86,6 +86,7 @@ import json
 import requests
 import math
 import re
+import PySimpleGUI as fr
 
 # ================================================== S E T U P =========================================================
 
@@ -102,8 +103,23 @@ startpoint = 'L00P1133'
 # Project id | Bremerhaven project id: 100011
 project = '100011'
 
-# counter to count the entries created
-count = 0
+# Define GUI Window
+fr.theme('Dark')
+progressbar = [
+    [fr.ProgressBar(500, orientation='h', size=(75, 20), key='progressbar')]
+]
+outputwin = [
+    [fr.Output(size=(60, 30))],
+]
+
+layout = [
+    [fr.Frame('Progress', layout=progressbar)],
+    [fr.Frame('Output', layout=outputwin), fr.MLine(key='-ML1-' + fr.WRITE_ONLY_KEY, size=(50, 31))],
+    [fr.Submit('Start'), fr.Cancel()]
+]
+window = fr.Window('Downloading Metadata for 3D-Navigation', layout)
+progress_bar = window['progressbar']
+
 
 # ============================================== F U N C T I O N S =====================================================
 
@@ -127,10 +143,10 @@ def get_request(mode: str, project: str, startpoint: str, endpoint: str):
 
     # check that the HTTP status code 200 indicates OK, which means that the request was successful.
     if r.status_code == 200:
-        print('\x1b[6;30;42m' + 'Request was Success!' + '\x1b[0m')
+        print('Request was Success!')
         print(f'HTTP status code is: {r.status_code}. ')
     else:
-        print('\x1b[6;30;41m' + 'something went wrong!' + '\x1b[0m')
+        print('something went wrong!')
         print(f'HTTP status code is: {r.status_code}')
     return r
 
@@ -168,67 +184,81 @@ def write_json_down(json_data, json_name):
     print(f'create {json_name}')
     with open(f'{json_name}.json', 'w') as outfile:
         json.dump(json_data, outfile)
-    print('\x1b[6;30;42m' + 'Creating the JSON file was successful!' + '\x1b[0m')
+    print('Finish! Creating the JSON file was successful!')
 
 
 # =================================================== M A I N ==========================================================
 
 if __name__ == '__main__':
 
-    # iterate over used json data
-    for d in data['data']['list']:
-        print('Start the fetch of new data .. ')
-        count += 1
-        endpoint = d["point"]
-        video_name = f'{startpoint}-{endpoint}-'
-        video_path = f'{video_name}'
+    count = 0
+    # start GUI
+    while True:
+        event, values = window.read(timeout=10)
+        if event == 'Cancel' or event is None:
+            break
+        elif event == 'Start':
 
-        # send request for normal path
-        r_M0 = get_request(mode='M0000',
-                           project=project,
-                           startpoint=startpoint,
-                           endpoint=endpoint)
+            # iterate over used json data
+            for d in data['data']['list']:
+                print('Start the fetch of new data .. ')
+                count += 1
+                endpoint = d["point"]
+                video_name = f'{startpoint}-{endpoint}-'
+                video_path = f'{video_name}'
 
-        # send request for Accessible path
-        r_M1 = get_request(mode='M0001',
-                           project=project,
-                           startpoint=startpoint,
-                           endpoint=endpoint)
+                # send request for normal path
+                r_M0 = get_request(mode='M0000',
+                                project=project,
+                                startpoint=startpoint,
+                                endpoint=endpoint)
 
-        # Initialise a variable for the room name and filter the wrong chars out of the string to avoid errors later on
-        room_name = filter_char_wrong_Roum(d['name'])
-        print(f'Room: {room_name}')
+                # send request for Accessible path
+                r_M1 = get_request(mode='M0001',
+                                project=project,
+                                startpoint=startpoint,
+                                endpoint=endpoint)
 
-        # Initialise a variable for the location and filter the wrong characters from the string
-        location = filter_char_location(d['location'])
-        print(f'Location: {location}')
+                # Initialise a variable for the room name and filter the wrong chars out of the string to avoid errors later on
+                room_name = filter_char_wrong_Roum(d['name'])
+                print(f'Room: {room_name}')
 
-        # Initialise variable for the distance and round up the floating point number to make it easier to call up.
-        distance_M0 = round_up_numbers(r_M0.json()['distance'])
-        distance_M1 = round_up_numbers(r_M1.json()['distance'])
-        print(f'Distance "M0000": {distance_M0},'
-              f' Distance "M0001": {distance_M1}')
+                # Initialise a variable for the location and filter the wrong characters from the string
+                location = filter_char_location(d['location'])
+                print(f'Location: {location}')
 
-        # Initialise variable for duration and divide by 60 to get the minutes, then round up the number of minutes to
-        # get a better result.
-        duration_M0 = round_up_numbers(sec_to_min(r_M0.json()['duration']))
-        duration_M1 = round_up_numbers(sec_to_min(r_M1.json()['duration']))
-        print(f'Duration "M0000": {duration_M0},'
-              f' Duration "M0001": {duration_M1}')
+                # Initialise variable for the distance and round up the floating point number to make it easier to call up.
+                distance_M0 = round_up_numbers(r_M0.json()['distance'])
+                distance_M1 = round_up_numbers(r_M1.json()['distance'])
+                print(f'Distance "M0000": {distance_M0},'
+                     f' Distance "M0001": {distance_M1}')
 
-        tmp_json_struc = {f'{room_name}': {'M0000': {'video_path': f'{video_path}M0000.mp4',
-                                                     'location': f'{location}',
-                                                     'distance': f'{distance_M0}',
-                                                     'time': f'{duration_M0}'},
-                                           'M0001': {'video_path': f'{video_path}M0001.mp4',
-                                                     'location': f'{location}',
-                                                     'distance': f'{distance_M1}',
-                                                     'time': f'{duration_M1}'}}}
+                # Initialise variable for duration and divide by 60 to get the minutes, then round up the number of minutes to
+                # get a better result.
+                duration_M0 = round_up_numbers(sec_to_min(r_M0.json()['duration']))
+                duration_M1 = round_up_numbers(sec_to_min(r_M1.json()['duration']))
+                print(f'Duration "M0000": {duration_M0},'
+                     f' Duration "M0001": {duration_M1}')
 
-        # add new data to dictonary and define the json data structure
-        new_json_struc.update(tmp_json_struc)
+                tmp_json_struc = {f'{room_name}': {'M0000': {'video_path': f'{video_path}M0000.mp4',
+                                                            'location': f'{location}',
+                                                            'distance': f'{distance_M0}',
+                                                            'time': f'{duration_M0}'},
+                                                    'M0001': {'video_path': f'{video_path}M0001.mp4',
+                                                            'location': f'{location}',
+                                                            'distance': f'{distance_M1}',
+                                                            'time': f'{duration_M1}'}}}
 
-        print(f'Status of created JSON data: {json.dumps(tmp_json_struc, indent=4)}')
-        print(f'Number of generated Data {count}')
+                # add new data to dictonary and define the json data structure
+                new_json_struc.update(tmp_json_struc)
+                progress_bar.UpdateBar(count + 1)
 
-    write_json_down(new_json_struc, 'route_data')
+                # print(f'Status of created JSON data: {json.dumps(tmp_json_struc, indent=4)}')
+                print(f'Number of generated Data {count}')
+                print(f'Adding Data was successful!')
+                print('=================================================')
+                window['-ML1-' + fr.WRITE_ONLY_KEY].print(json.dumps(tmp_json_struc, indent=4))
+
+            write_json_down(new_json_struc, 'route_data_test')
+
+    window.close()
