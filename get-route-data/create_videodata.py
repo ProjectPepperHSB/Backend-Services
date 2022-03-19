@@ -1,6 +1,6 @@
-__version__ = '1.2.3'
+__version__ = '1.5.0'
 __author__ = 'Jacob Benjamin Menge'
-__copyright__ = 'Jacob Benjamin Menge'
+__copyright__ = '© Hochschule Bremerhaven'
 __status__ = 'Production'
 __github__ = 'https://github.com/ProjectPepperHSB/Backend-Services.git'
 
@@ -36,8 +36,9 @@ __github__ = 'https://github.com/ProjectPepperHSB/Backend-Services.git'
     
     ----- N O T E S -----
     
-    Please note that the downloaded videos are all stored in the directory in which the script is executed. In addition,
-    an internet connection is of course necessary to execute the script correctly.
+    It is now possible to freely select the directory for saving the videos. if no directory is selected, the videos are
+    saved in the videos folder. In addition, an internet connection is of course necessary to execute the script 
+    correctly.
     
     ----- A U T H O R S H I P - A N D - C O N T R I B U T I O N -----
     @date: 2022, January 4.
@@ -57,6 +58,8 @@ import PySimpleGUI as fr
 rq = requests.get(
     'https://services.guide3d.com/menu/cors/index.php?project=100011&language=de&set=set_01&force-display=false')
 videos = rq.json()
+
+# default value for the download directory
 directory = "videos"
 
 # Project id | Bremerhaven project id: 100011
@@ -69,12 +72,48 @@ url = f'https://cdnguide3dcom.blob.core.windows.net/videos/{project}'
 video_format = '544x306'
 startpoint = "L00P1133"
 
-# Define GUI Window
+# ==================================================== G U I ===========================================================
+
+# set colors for the windows
 fr.theme('Dark')
+
+# initialize progressbar
+progressbar = [
+    [fr.ProgressBar(1000, orientation='h', size=(69, 20), key='progressbar')]
+]
+
+outputwin = [
+    [fr.Output(size=(105, 25))],
+]
+
+# make a short text window to describe the skript in GUI
+textwindow = [
+    [fr.T("This script downloads video files from the 3d-Berlin API, which was created for the Bremerhaven University "
+          "of Applied Sciences. It\nalso creates the videos so that we can integrate them into our own API. Specifies "
+          "the directory in which the video files are to be\nsaved. Please note that you need a minimum memory size of "
+          "845 MB in the selected directory.")]
+]
+
+# Define GUI Layout Window
+layout = [
+    [fr.Frame('Info about this program', layout=textwindow, size=(775, 80))],
+    [fr.T("")],
+    [fr.Text("Choose a folder: "), fr.Input(key="-IN2-", size=76, change_submits=True), fr.FolderBrowse(key="-IN-"),
+     fr.Button("Submit")],
+    [fr.Frame('Progress', layout=progressbar)],
+    [fr.Frame('Output', layout=outputwin)],
+    [fr.Submit('Start'), fr.Cancel()]
+]
+
+# set some windows setting for the Frame
+window = fr.Window('Downloading Videos for 3D-Navigation                                                               '
+                   '                          © Hochschule Bremerhaven', layout)
+progress_bar = window['progressbar']
 
 
 # ============================================== F U N C T I O N S =====================================================
 
+# The request is defined and the corresponding video is downloaded.
 def get_video(url: str, startpoint: str, endpoint: str, accessibily_mode: bool, format: str):
     """
     :param url: Download link to video (.mp4)
@@ -107,44 +146,74 @@ def get_video(url: str, startpoint: str, endpoint: str, accessibily_mode: bool, 
         print(f'Request was successful! HTTP status code is: {r.status_code}. ')
         write_video(directory, video_name, r)
     else:
-        print('\x1b[6;30;41m' + 'something went wrong!' + '\x1b[0m')
+        print('something went wrong!')
         print(f'HTTP status code is: {r.status_code}')
 
 
+# gets the request object which contains an mp4 video and writes it into the passed directory with the also passed name.
+# The data is stored here.
 def write_video(directory, video_name, request_object):
     """
     :param directory: direct path under which the video is to be saved
     :param video_name: name of the MP4 file to be saved
     :param request_object: the request object received from the request
     """
-
     print("start to downloading video ..")
     open(f'{directory}/{video_name}', 'wb').write(request_object.content)
     print(f'Video is saved as {video_name}')
-    print('\x1b[6;30;42m' + 'Success!' + '\x1b[0m')
+    print('Success!')
 
 
 # =================================================== M A I N ==========================================================
 
 if __name__ == '__main__':
 
-    counter = 0
+    # start GUI
+    while True:
 
-    for video in range(len(videos['data']['list'])):
-        fr.one_line_progress_meter('Downloading Videos', video + 1, len(videos['data']['list']))
-        endpoint = videos['data']['list'][video]['point']
-        room = videos['data']['list'][video]['name']
-        print(f'=================== ROUTE_TO_ROOM: {room} ===================')
-        print("accessibily_mode: False")
-        get_video(url=url,
-                  startpoint=startpoint,
-                  endpoint=endpoint,
-                  accessibily_mode=False,
-                  format=video_format)
+        # start window
+        event, values = window.read(timeout=10)
 
-        print("accessibily_mode: True")
-        get_video(url=url,
-                  startpoint=startpoint,
-                  endpoint=endpoint,
-                  accessibily_mode=True,
-                  format=video_format)
+        # check if the button "submit" has been triggered, if this is the case, the input from "-IN-" is set as the
+        # directory for saving the video files.
+        if event == "Submit":
+            directory = values["-IN-"]
+            print(f'"{directory}" is set as download directory')
+
+        # Check whether the "Chancel" button has been triggered or the window has been closed if this is the case, the
+        # programme will be terminated. Pressing the "start" button starts the iteration of the following loop.
+        if event == fr.WIN_CLOSED or event == "Cancel":
+            break
+        elif event == 'Start':
+            # iterate over the entire length of the list of videos
+            for video in range(len(videos['data']['list'])):
+
+                if event == fr.WIN_CLOSED or event == "Cancel":
+                    break
+
+                # define the endpoint and the room name to pass the correct request to the function
+                endpoint = videos['data']['list'][video]['point']
+                room = videos['data']['list'][video]['name']
+                print(f'=========================== DOWNLOAD VIDEO ROUTES TO ROOM: {room} ===========================')
+
+                # Download video
+                print("accessibily_mode: False")
+                get_video(url=url,
+                          startpoint=startpoint,
+                          endpoint=endpoint,
+                          accessibily_mode=False,
+                          format=video_format)
+
+                # Download video for accessibily_mode
+                print("accessibily_mode: True")
+                get_video(url=url,
+                          startpoint=startpoint,
+                          endpoint=endpoint,
+                          accessibily_mode=True,
+                          format=video_format)
+
+                # update the progressbar to see the progression
+                progress_bar.UpdateBar(video)
+
+    # close window
+    window.close()
