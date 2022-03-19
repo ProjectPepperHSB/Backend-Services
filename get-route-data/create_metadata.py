@@ -103,6 +103,11 @@ startpoint = 'L00P1133'
 # Project id | Bremerhaven project id: 100011
 project = '100011'
 
+# directory for the json file
+directory = ""
+
+json_name = ""
+
 # ==================================================== G U I ===========================================================
 
 # set colors for the windows
@@ -112,7 +117,8 @@ fr.theme('Dark')
 textwindow = [
     [fr.T(
         "This script creates a dataset in java object notation. The content of the data is information about the paths"
-        " between rooms within the university\nof applied sciences bremerhaven.")]
+        " between rooms within the university\nof applied sciences bremerhaven. please note that you do not specify the"
+        " file extension <.json>.")]
 ]
 
 # initialize progressbar
@@ -129,6 +135,9 @@ outputwin = [
 layout = [
     [fr.Frame('Info about this program', layout=textwindow, size=(837, 70))],
     [fr.T("")],
+    [fr.Text("Choose a filename: "), fr.Input(key="-IN3-", size=76, change_submits=True), fr.Button("Submit ")],
+    [fr.Text("Choose a folder:     "), fr.Input(key="-IN2-", size=76, change_submits=True), fr.FolderBrowse(key="-IN-"),
+     fr.Button("Submit")],
     [fr.Frame('Progress', layout=progressbar)],
     [fr.Frame('Output', layout=outputwin), fr.MLine(key='-ML1-' + fr.WRITE_ONLY_KEY, size=(50, 31))],
     [fr.Submit('Start'), fr.Cancel()]
@@ -199,9 +208,9 @@ def filter_char_wrong_Roum(string):
 
 
 # write data into json
-def write_json_down(json_data, json_name):
-    print(f'create {json_name}')
-    with open(f'{json_name}.json', 'w') as outfile:
+def write_json_down(json_data, directory, json_name):
+    print(f'create {json_name} in {directory}')
+    with open(f'{directory}/{json_name}.json', 'w') as outfile:
         json.dump(json_data, outfile)
     print('Finish! Creating the JSON file was successful!')
 
@@ -215,6 +224,14 @@ if __name__ == '__main__':
     # start GUI Windows
     while True:
         event, values = window.read(timeout=10)
+
+        if event == "Submit":
+            directory = values["-IN-"]
+            print(f'"{directory}" is set as target directory')
+
+        if event == "Submit ":
+            json_name = values["-IN3-"]
+            print(f'"{json_name}" is set as name')
 
         # close window if cancel event (button is triggered)
         if event == 'Cancel' or event is None:
@@ -244,23 +261,23 @@ if __name__ == '__main__':
                                    endpoint=endpoint)
 
                 # Initialise var for the room name and filter the wrong chars out of the string to avoid errors later on
-                room_name = filter_char_wrong_Roum(d['name'])
+                room_name = filter_char_wrong_Roum(string=d['name'])
                 print(f'Room: {room_name}')
 
                 # Initialise a variable for the location and filter the wrong characters from the string
-                location = filter_char_location(d['location'])
+                location = filter_char_location(string=d['location'])
                 print(f'Location: {location}')
 
                 # Initialise var for the distance and round up the floating point number to make it easier to call up.
-                distance_M0 = round_up_numbers(r_M0.json()['distance'])
-                distance_M1 = round_up_numbers(r_M1.json()['distance'])
+                distance_M0 = round_up_numbers(num=r_M0.json()['distance'])
+                distance_M1 = round_up_numbers(num=r_M1.json()['distance'])
                 print(f'Distance "M0000": {distance_M0},'
                       f' Distance "M0001": {distance_M1}')
 
                 # Initialise var for duration and divide by 60 to get minutes, then round up the number of minutes to
                 # get a better result.
-                duration_M0 = round_up_numbers(sec_to_min(r_M0.json()['duration']))
-                duration_M1 = round_up_numbers(sec_to_min(r_M1.json()['duration']))
+                duration_M0 = round_up_numbers(num=sec_to_min(r_M0.json()['duration']))
+                duration_M1 = round_up_numbers(num=sec_to_min(r_M1.json()['duration']))
                 print(f'Duration "M0000": {duration_M0},'
                       f' Duration "M0001": {duration_M1}')
 
@@ -276,16 +293,19 @@ if __name__ == '__main__':
 
                 # add new data to dictonary and define the json data structure
                 new_json_struc.update(tmp_json_struc)
-                progress_bar.UpdateBar(count + 1)
+                progress_bar.UpdateBar(current_count=count + 1)
 
                 # print(f'Status of created JSON data: {json.dumps(tmp_json_struc, indent=4)}')
                 print(f'Number of generated Data {count}')
                 print(f'Adding Data was successful!')
                 print('=================================================')
-                window['-ML1-' + fr.WRITE_ONLY_KEY].print(json.dumps(tmp_json_struc, indent=4))
+                window['-ML1-' + fr.WRITE_ONLY_KEY].print(json.dumps(obj=tmp_json_struc,
+                                                                     indent=4))
 
             # save generated json data
-            write_json_down(new_json_struc, 'route_data_test')
+            write_json_down(json_data=new_json_struc,
+                            directory=directory,
+                            json_name=json_name)
 
     # close window
     window.close()
