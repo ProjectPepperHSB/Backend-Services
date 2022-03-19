@@ -49,6 +49,7 @@ __github__ = 'https://github.com/ProjectPepperHSB/Backend-Services.git'
 # ================================================ I M P O R T S =======================================================
 
 import requests
+import PySimpleGUI as fr
 
 # ================================================== S E T U P =========================================================
 
@@ -67,6 +68,9 @@ url = f'https://cdnguide3dcom.blob.core.windows.net/videos/{project}'
 # the image format in pixels. the API supports only 544x306 in most cases.
 video_format = '544x306'
 startpoint = "L00P1133"
+
+# Define GUI Window
+fr.theme('Dark')
 
 
 # ============================================== F U N C T I O N S =====================================================
@@ -124,7 +128,10 @@ def write_video(directory, video_name, request_object):
 
 if __name__ == '__main__':
 
+    counter = 0
+
     for video in range(len(videos['data']['list'])):
+        fr.one_line_progress_meter('Downloading Videos', video + 1, len(videos['data']['list']))
         endpoint = videos['data']['list'][video]['point']
         room = videos['data']['list'][video]['name']
         print(f'=================== ROUTE_TO_ROOM: {room} ===================')
