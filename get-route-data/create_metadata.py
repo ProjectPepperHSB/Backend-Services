@@ -1,6 +1,6 @@
-__version__ = '1.2.5'
+__version__ = '1.5.0'
 __author__ = 'Jacob Benjamin Menge'
-__copyright__ = 'Jacob Benjamin Menge'
+__copyright__ = '© Hochschule Bremerhaven'
 __status__ = 'Production'
 __github__ = 'https://github.com/ProjectPepperHSB/Backend-Services.git'
 
@@ -103,21 +103,40 @@ startpoint = 'L00P1133'
 # Project id | Bremerhaven project id: 100011
 project = '100011'
 
-# Define GUI Window
+# ==================================================== G U I ===========================================================
+
+# set colors for the windows
 fr.theme('Dark')
+
+# make a short text window to describe the skript in GUI
+textwindow = [
+    [fr.T(
+        "This script creates a dataset in java object notation. The content of the data is information about the paths"
+        " between rooms within the university\nof applied sciences bremerhaven.")]
+]
+
+# initialize progressbar
 progressbar = [
     [fr.ProgressBar(500, orientation='h', size=(75, 20), key='progressbar')]
 ]
+
+# initialize the windows to show the output (printouts)
 outputwin = [
     [fr.Output(size=(60, 30))],
 ]
 
+# Define GUI Layout Window
 layout = [
+    [fr.Frame('Info about this program', layout=textwindow, size=(837, 70))],
+    [fr.T("")],
     [fr.Frame('Progress', layout=progressbar)],
     [fr.Frame('Output', layout=outputwin), fr.MLine(key='-ML1-' + fr.WRITE_ONLY_KEY, size=(50, 31))],
     [fr.Submit('Start'), fr.Cancel()]
 ]
-window = fr.Window('Downloading Metadata for 3D-Navigation', layout)
+
+# set some windows setting for the Frame
+window = fr.Window('Downloading Metadata for 3D-Navigation                                                             '
+                   '                                          © Hochschule Bremerhaven', layout)
 progress_bar = window['progressbar']
 
 
@@ -192,11 +211,16 @@ def write_json_down(json_data, json_name):
 if __name__ == '__main__':
 
     count = 0
-    # start GUI
+
+    # start GUI Windows
     while True:
         event, values = window.read(timeout=10)
+
+        # close window if cancel event (button is triggered)
         if event == 'Cancel' or event is None:
             break
+
+        # start button activated
         elif event == 'Start':
 
             # iterate over used json data
@@ -209,17 +233,17 @@ if __name__ == '__main__':
 
                 # send request for normal path
                 r_M0 = get_request(mode='M0000',
-                                project=project,
-                                startpoint=startpoint,
-                                endpoint=endpoint)
+                                   project=project,
+                                   startpoint=startpoint,
+                                   endpoint=endpoint)
 
                 # send request for Accessible path
                 r_M1 = get_request(mode='M0001',
-                                project=project,
-                                startpoint=startpoint,
-                                endpoint=endpoint)
+                                   project=project,
+                                   startpoint=startpoint,
+                                   endpoint=endpoint)
 
-                # Initialise a variable for the room name and filter the wrong chars out of the string to avoid errors later on
+                # Initialise var for the room name and filter the wrong chars out of the string to avoid errors later on
                 room_name = filter_char_wrong_Roum(d['name'])
                 print(f'Room: {room_name}')
 
@@ -227,27 +251,28 @@ if __name__ == '__main__':
                 location = filter_char_location(d['location'])
                 print(f'Location: {location}')
 
-                # Initialise variable for the distance and round up the floating point number to make it easier to call up.
+                # Initialise var for the distance and round up the floating point number to make it easier to call up.
                 distance_M0 = round_up_numbers(r_M0.json()['distance'])
                 distance_M1 = round_up_numbers(r_M1.json()['distance'])
                 print(f'Distance "M0000": {distance_M0},'
-                     f' Distance "M0001": {distance_M1}')
+                      f' Distance "M0001": {distance_M1}')
 
-                # Initialise variable for duration and divide by 60 to get the minutes, then round up the number of minutes to
+                # Initialise var for duration and divide by 60 to get minutes, then round up the number of minutes to
                 # get a better result.
                 duration_M0 = round_up_numbers(sec_to_min(r_M0.json()['duration']))
                 duration_M1 = round_up_numbers(sec_to_min(r_M1.json()['duration']))
                 print(f'Duration "M0000": {duration_M0},'
-                     f' Duration "M0001": {duration_M1}')
+                      f' Duration "M0001": {duration_M1}')
 
+                # define the json structure to add to the whole json
                 tmp_json_struc = {f'{room_name}': {'M0000': {'video_path': f'{video_path}M0000.mp4',
-                                                            'location': f'{location}',
-                                                            'distance': f'{distance_M0}',
-                                                            'time': f'{duration_M0}'},
-                                                    'M0001': {'video_path': f'{video_path}M0001.mp4',
-                                                            'location': f'{location}',
-                                                            'distance': f'{distance_M1}',
-                                                            'time': f'{duration_M1}'}}}
+                                                             'location': f'{location}',
+                                                             'distance': f'{distance_M0}',
+                                                             'time': f'{duration_M0}'},
+                                                   'M0001': {'video_path': f'{video_path}M0001.mp4',
+                                                             'location': f'{location}',
+                                                             'distance': f'{distance_M1}',
+                                                             'time': f'{duration_M1}'}}}
 
                 # add new data to dictonary and define the json data structure
                 new_json_struc.update(tmp_json_struc)
@@ -259,6 +284,8 @@ if __name__ == '__main__':
                 print('=================================================')
                 window['-ML1-' + fr.WRITE_ONLY_KEY].print(json.dumps(tmp_json_struc, indent=4))
 
+            # save generated json data
             write_json_down(new_json_struc, 'route_data_test')
 
+    # close window
     window.close()
