@@ -51,10 +51,8 @@ class Client(object):
             print(self.test_connection())
         
     def test_connection(self) -> dict:
-        payload = {
-            'subject': 'test'
-        }
-        return self._request('POST', params=payload, uri='/api/v1')
+        payload = { 'subject': 'test' }
+        return self._request('POST', params=payload, uri='/api/v1/sql')
 
     def sql_query(self, query: str) -> dict:
         return self._send_sql_query(query)
@@ -64,8 +62,7 @@ class Client(object):
             'subject': 'sql_query',
             'query_str': f'{query};'
         }
-
-        return self._request('POST', params=payload, uri='/api/v1')
+        return self._request('POST', params=payload, uri='/api/v1/sql')
 
     def _request(self, method: str, params: dict={}, uri: str='', headers: dict={}) -> dict:
         uri_path = uri
@@ -102,4 +99,4 @@ class Client(object):
             else:
                 return data
         else:
-            raise Exception('{}-{}'.format(response_data.status_code, response_data.text))
+            raise Exception(f'{response_data.status_code}-{esponse_data.text}')

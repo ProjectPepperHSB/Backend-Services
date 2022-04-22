@@ -1,5 +1,5 @@
 
-__version__ = '1.0.1'
+__version__ = '1.0.0'
 __author__ = 'Benjamin Thomas Schwertfeger'
 __copyright__ = 'Benjamin Thomas Schwertfeger'
 __status__ = 'Production'
