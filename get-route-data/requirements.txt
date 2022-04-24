@@ -1,5 +1,1 @@
-json
-requests
-math
-re
 PySimpleGUI
