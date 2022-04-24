@@ -37,6 +37,3 @@ Every package has its own install script to install the required packages.
 - Script for creating and structuring the metadata for the spatial routes
 - route_data.json file with the information on the routes
 
-## Todo
-
-- Comment and format mensa stuff
